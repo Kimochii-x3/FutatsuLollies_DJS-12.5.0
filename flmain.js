@@ -3,7 +3,7 @@ const ms = require('ms'); // ms npm package used for time
 const fs = require('fs'); // used to read the command & event files as well as any additional files
 const snekfetch = require('snekfetch'); // using snekfetch to update bot stats on top.gg
 const mysql = require('promise-mysql'); // usnig promise-mysql for database
-const { token, pls_fuck, me_hard, daddy, hydrabolt, uwu } = require('./botconf.json'); // requiring bot token, database credentials and prefix
+const { token, pls_fuck, me_hard, daddy, hydrabolt, uwu } = require('./botconf.json'); // requiring bot token, database credentials
 const bot = new Discord.Client({ messageCacheMaxSize: 300 /*, messageCacheLifetime: 7200, messageSweepInterval: 600*/}) // creating the bot with non-default message settings
 const commands = new Discord.Collection(); // creating the command collection
 const cd = new Set(); // creating the set for command cooldowns
@@ -45,12 +45,14 @@ fs.readdir(__dirname + `/events`, (err, files) => {
         }
     });
     // logging startup/restarts/reconnects and uptime
-    const botStartup = new Discord.RichEmbed()
+    const botStartup = new Discord.MessageEmbed()
     .setTitle(new Date().toLocaleString('en-GB'))
     .setColor('#63ff48')
     .setDescription(dbDesc)
     runAndUptime.send(botStartup);
 })();
+// sets the bot owner
+bot.owner = bot.users.get('254349985963835393');
 // once the bot's ready this code is executed
 bot.on('ready', async () => {
     // fetches the MOTD from the database and sets it as the bot's status
@@ -124,9 +126,9 @@ bot.on('message', async message => {
                     } else if (cmd.args && !args.length) {
                         return message.channel.send('No args provided');
                     } else if (message.member.hasPermission('ADMINISTRATOR')) {
-                        cmd.execute(bot, message, args, option, commands, prefix);
+                        cmd.execute(bot, message, args, option, commands, prefix, errorLogs);
                     } else if (!message.member.hasPermission('ADMINISTRATOR')) {
-                        cmd.execute(bot, message, args, option, commands, prefix);
+                        cmd.execute(bot, message, args, option, commands, prefix, errorLogs);
                         if (cmd.cd !== 0) {
                             await cd.add(`${message.author.id} + ${message.guild.id}`);
                             setTimeout(() => {
