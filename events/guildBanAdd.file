@@ -1,0 +1,14 @@
+const Discord = require('discord.js');
+
+module.exports = async (bot, guild, user, errorLogs) => {
+    const botPerms = guild.me.hasPermission(['SEND_MESSAGES', 'VIEW_AUDIT_LOG', 'EMBED_LINKS'], { checkAdmin: true, checkOwner: false }).catch(err => errorLogs.send(err));
+    const rows = await bot.db.query(`select * from serverInfo where serverID = ${guild.id}`).catch(err => errorLogs.send(err));
+    const logCHNL = guild.channels.cache.find(chnl => chnl.id === rows[0].serverClogID);
+    if (botPerms) {
+        if (rows[0].serverLog === 'Y' && logCHNL) {
+            
+        } else if (rows[0].serverLog === 'N' || !logCHNL) {
+            return;
+        }
+    } else if (!botPerms) { return; }
+};

@@ -83,9 +83,9 @@ bot.on('ready', async () => {
             const guild = await bot.guilds.cache.get(r.serverID);
             const member = await guild.members.cache.get(r.userID);
             const mtr = await guild.roles.cache.get(r.muteRoleID);
-            member.roles.remove(mtr, 'Unmuting');
+            await member.roles.remove(mtr, 'Unmuting from voice and/or text');
             if (member.voice.channel != null) {
-                member.voice.setMute(false, 'Unmuting').catch(err => errorLogs.send(err));
+                await member.voice.setMute(false).catch(err => errorLogs.send(err));
                 await bot.db.query(`delete from serverMutes where userID = ${r.userID} and serverID = ${r.serverID} and muteRoleID = ${r.muteRoleID}`).catch(err => errorLogs.send(err));
             } else if (member.voice.channel == null) {
                 await bot.db.query(`delete from serverMutes where userID = ${r.userID} and serverID = ${r.serverID} and muteRoleID = ${r.muteRoleID}`).catch(err => errorLogs.send(err));
@@ -167,46 +167,46 @@ bot.on('guildCreate', async guild => {
 });
 // all other event listeners are extended in events folder
 // when bot leaves the guild
-bot.on('guildDelete', async guild => {});
+bot.on('guildDelete', async (guild, errorLogs) => {});
 // when a guild is updated
-bot.on('guildUpdate', async (oldGuild, newGuild) => {});
+bot.on('guildUpdate', async (oldGuild, newGuild, errorLogs) => {});
 // when an emoji is created
-bot.on('emojiCreate', async emoji => {});
+bot.on('emojiCreate', async (emoji, errorLogs) => {});
 // when an emoji is updated
-bot.on('emojiUpdate', async (oldEmoji, newEmoji) => {});
+bot.on('emojiUpdate', async (oldEmoji, newEmoji, errorLogs) => {});
 // when an emoji is deleted
-bot.on('emojiDelete', async emoji => {});
+bot.on('emojiDelete', async (emoji, errorLogs) => {});
 // when someone gets banned
-bot.on('guildBanAdd', async (guild, user) => {});
+bot.on('guildBanAdd', async (guild, user, errorLogs) => {});
 // when someone gets unbanned
-bot.on('guildBanRemove', async (guild, user) => {});
+// bot.on('guildBanRemove', async (guild, user, errorLogs) => {}); - I'll add it later on
 // when a user joins the guild
-bot.on('guildMemberAdd', async member => {});
+bot.on('guildMemberAdd', async (member, errorLogs) => {});
 // when a member is updated in the guild
-bot.on('guildMemberUpdate', async (oldMember, newMember) => {});
+bot.on('guildMemberUpdate', async (oldMember, newMember, errorLogs) => {});
 // when a member leaves the guild
-bot.on('guildMemberRemove', async member => {});
+bot.on('guildMemberRemove', async (member, errorLogs) => {});
 // when a message is deleted
-bot.on('messageDelete', async message => {});
-// when a message is updated (edited and idk whatelse)
-bot.on('messageUpdate', async (oldMessage, newMessage) => {});
-// when a member joins/exists/changes voice channels
-bot.on('voiceStateUpdate', async (oldMember, newMember) => {});
-// when a invite to the guild or channel is created
-bot.on('inviteCreate', async invite => {});
-// when a invite to the guild or channel is deleted
-bot.on('inviteDelete', async invite => {});
-// when a channel is created
-bot.on('channelCreate', async channel => {});
-// when a channel is updated
-bot.on('channelUpdate', async (oldChannel, newChannel) => {});
-// when a channel is deleted
-bot.on('channelDelete', async channel => {});
-// when a role is created
-bot.on('roleCreate', async role => {});
-// when a role is updated
-bot.on('roleUpdate', async (oldRole, newRole) => {});
-// when a role is deleted
-bot.on('roleDelete', async role => {});
+bot.on('messageDelete', async (message, errorLogs) => {});
+// when a message is updated (edited and idk whatelse)                      ________
+// bot.on('messageUpdate', async (oldMessage, newMessage, errorLogs) => {});        \
+// when a member joins/exists/changes voice channels                                 \
+// bot.on('voiceStateUpdate', async (oldMember, newMember, errorLogs) => {});         \
+// when a invite to the guild or channel is created                                    \
+// bot.on('inviteCreate', async (invite, errorLogs) => {});                             \
+// when a invite to the guild or channel is deleted                                      \
+// bot.on('inviteDelete', async (invite, errorLogs) => {});                               \
+// when a channel is created                                                               \
+// bot.on('channelCreate', async (channel, errorLogs) => {});                               \
+// when a channel is updated                                                                 \___ to be implemented at some point
+// bot.on('channelUpdate', async (oldChannel, newChannel, errorLogs) => {});                 /
+// when a channel is deleted                                                                /
+// bot.on('channelDelete', async (channel, errorLogs) => {});                              /
+// when a role is created                                                                 /
+// bot.on('roleCreate', async (role, errorLogs) => {});                                  /
+// when a role is updated                                                               /
+// bot.on('roleUpdate', async (oldRole, newRole, errorLogs) => {});                    /
+// when a role is deleted                                                             /
+// bot.on('roleDelete', async (role, erroLogs) => {}); ______________________________/
 // the bot token that it logs in with
 bot.login(token);
