@@ -7,43 +7,43 @@ module.exports = {
     cd: 0,
     guildOnly: true,
     args: true,
-    async execute (bot, message, args, option, commands, prefix, errorLogs) {
+    async execute (bot, message, args, option, commands, prefix) {
         const lookup = args[0];
         const id = args[1];
         const mentionedMember = message.mentions.members.first();
         if (mentionedMember) {
             switch (lookup) {
                 case 'avatar': {
-                    const avatarurl = await bot.users.fetch(mentionedMember.id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(err => errorLogs.send(err));
-                    return message.channel.send(avatarurl);
+                    const avatarurl = await bot.users.fetch(mentionedMember.id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(bot.errHandle);
+                    return message.channel.send(avatarurl).catch(bot.errHandle);
                 }
                 case 'tag': {
-                    const tag = await bot.users.fetch(mentionedMember.id).then(u => u.tag).catch(err => errorLogs.send(err));
-                    return message.channel.send(tag);
+                    const tag = await bot.users.fetch(mentionedMember.id).then(u => u.tag).catch(bot.errHandle);
+                    return message.channel.send(tag).catch(bot.errHandle);
                 }
                 default: { return; }
             }
         } else if (!mentionedMember) {
             switch (lookup) {
                 case 'avatar': {
-                    const avatarurl = await bot.users.fetch(id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(err => errorLogs.send(err));
-                    return message.channel.send(avatarurl);
+                    const avatarurl = await bot.users.fetch(id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(bot.errHandle);
+                    return message.channel.send(avatarurl).catch(bot.errHandle);
                 }
                 case 'tag': {
-                    const tag = await bot.users.fetch(id).then(u => u.tag).catch(err => errorLogs.send(err));
-                    return message.channel.send(tag);
+                    const tag = await bot.users.fetch(id).then(u => u.tag).catch(bot.errHandle);
+                    return message.channel.send(tag).catch(bot.errHandle);
                 }
                 default: { return; }
             }
         } else if (!args[1] || !mentionedMember) {
             switch (lookup) {
                 case 'avatar': {
-                    const avatarurl = await bot.users.fetch(message.author.id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(err => errorLogs.send(err));
-                    return message.channel.send(avatarurl);
+                    const avatarurl = await bot.users.fetch(message.author.id).then(u => u.avatarURL({ format: 'png', dynamic: true, size: 4096 })).catch(bot.errHandle);
+                    return message.channel.send(avatarurl).catch(bot.errHandle);
                 }
                 case 'tag': {
-                    const tag = await bot.users.fetch(message.author.id).then(u => u.tag).catch(err => errorLogs.send(err));
-                    return message.channel.send(tag);
+                    const tag = await bot.users.fetch(message.author.id).then(u => u.tag).catch(bot.errHandle);
+                    return message.channel.send(tag).catch(bot.errHandle);
                 }
                 default: { return; }
             }

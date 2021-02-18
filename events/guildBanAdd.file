@@ -1,14 +1,14 @@
 const Discord = require('discord.js');
 
-module.exports = async (bot, guild, user, errorLogs) => {
-    const botPerms = guild.me.hasPermission(['SEND_MESSAGES', 'VIEW_AUDIT_LOG', 'EMBED_LINKS'], { checkAdmin: true, checkOwner: false }).catch(err => errorLogs.send(err));
-    const rows = await bot.db.query(`select * from serverInfo where serverID = ${guild.id}`).catch(err => errorLogs.send(err));
-    const logCHNL = guild.channels.cache.find(chnl => chnl.id === rows[0].serverClogID);
-    if (botPerms) {
-        if (rows[0].serverLog === 'Y' && logCHNL) {
-            
-        } else if (rows[0].serverLog === 'N' || !logCHNL) {
-            return;
+module.exports = async (bot, guild, user) => {
+    const rows = await bot.db.query('select * from serverInfo where serverID = ?', [guild.id]).catch(bot.errHandle);
+    if (rows != undefined) {
+        const botPerms = guild.me.hasPermission(['SEND_MESSAGES', 'VIEW_AUDIT_LOG', 'EMBED_LINKS'], { checkAdmin: true, checkOwner: false });
+        const logCHNL = guild.channels.cache.find(chnl => chnl.id === rows[0].serverClogID);
+        if (botPerms) {
+            if (rows[0].serverLog === 'Y' && logCHNL) {
+                
+            }
         }
-    } else if (!botPerms) { return; }
+    } else { return bot.errL.send('Issue occured trying to log member banning in a server, should it occur commonly check code').catch(bot.errHandle); }
 };

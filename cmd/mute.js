@@ -23,54 +23,54 @@ module.exports = {
     cd: 0,
     guildOnly: true,
     args: true,
-    async execute (bot, message, args, option, commands, prefix, errorLogs) {
+    async execute (bot, message, args, option, commands, prefix) {
         const botPerms = message.guild.me.hasPermission(['MANAGE_CHANNELS', 'ADD_REACTIONS', 'MUTE_MEMBERS', 'MANAGE_ROLES', 'SEND_MESSAGES', 'EMBED_LINKS'], { checkAdmin: true, checkOwner: false });
         if (option[1] && option[1].trim() === 'set') {
             const foundMuterole = message.mentions.roles.first() || message.guild.roles.cache.get(option[0]);
             if (foundMuterole) {
-                await bot.db.query(`update serverInfo set muteRoleID = ${foundMuterole.id} where serverID = ${message.guild.id}`).catch(err => errorLogs.send(err));
-                return message.channel.send(`Successfully changed the mute role's ID to ${foundMuterole} in the database`);
+                await bot.db.query('update serverInfo set muteRoleID = ? where serverID = ?', [foundMuterole.id, message.guild.id]).catch(bot.errHandle);
+                return message.channel.send(`Successfully changed the mute role's ID to ${foundMuterole} in the database`).catch(bot.errHandle);
                 // let checkedChannelsEmbed = new Discord.MessageEmbed()
                 // .setAuthor(`Checking all ${message.guild.channels.cache.size} channels for permissions`)
                 // get array of channels, chunk it down, limit chunks to 10, output chunks to fields for discord embed, not necessary to do it now, can be for future update, after that is done
                 // let it work on permissions for muterole, till then ppl do the perms themselves.
             } else if (!foundMuterole) {
-                return message.channel.send('No role mentioned or no role id provided');
+                return message.channel.send('No role mentioned or no role id provided').catch(bot.errHandle);
             }
         } else {
-            return message.channel.send('You didn\'t use `-set` option to set the mute role')
+            return message.channel.send('You didn\'t use `-set` option to set the mute role').catch(bot.errHandle);
         }
         if (!option[1]) {
             if (!botPerms) {
-                return message.channel.send('I don\'t have either one or all of:\n`Manage Channels; Add Reactions; Mute Members; Manage Roles; Send Messages; Embed Links;`');
+                return message.channel.send('I don\'t have either one or all of:\n`Manage Channels; Add Reactions; Mute Members; Manage Roles; Send Messages; Embed Links;`').catch(bot.errHandle);
             } else if (botPerms) {
-                const rows = await bot.db.query(`select * from serverInfo where serverID = ${message.guild.id}`).catch(err => errorLogs.send(err));
+                const rows = await bot.db.query('select * from serverInfo where serverID = ?', [message.guild.id]).catch(bot.errHandle);
                 const muteRole = message.guild.roles.cache.find(role => role.id === rows[0].muteRoleID);
-                const botRole = await message.guild.roles.cache.find(role => role.name === 'FutatsuLollies');
+                const botRole = message.guild.roles.cache.find(role => role.name === 'FutatsuLollies');
                 const arrMentionMembers = message.mentions.members;
                 const muteTime = args.filter(arg => !arg.startsWith('<') && /\d+/g.test(arg))[0];
                 if (!muteRole) {
                     await message.guild.roles.create({ data: { name: 'Axe\'d', color: 'black', permission: [], position: botRole.position-1 } }).then(async role => {
-                        await bot.db.query(`update serverInfo set muteRoleID = ${role.id} where serverID = ${role.guild.id}`).catch(err => errorLogs.send(err));
+                        await bot.db.query('update serverInfo set muteRoleID = ? where serverID = ?', [role.id, role.guild.id]).catch(bot.errHandle);
                         for (const [id, channel] of message.guild.channels.cache) {
                             if (channel.type === 'category') {
-                                await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false, SPEAK: false }, 'Updating perms for the mute role' ).catch(err => errorLogs.send(err));
+                                await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false, SPEAK: false }, 'Updating perms for the mute role' ).catch(bot.errHandle);
                             } else if (channel.type === 'text') {
                                 if (!channel.permissionsLocked()) {
-                                    await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(err => errorLogs.send(err));
+                                    await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 } else if (channel.permissionsLocked() === null) {
-                                    await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(err => errorLogs.send(err));
+                                    await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 }
                             } if (channel.type === 'voice') {
                                 if (!channel.permissionsLocked()) {
-                                    await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(err => errorLogs.send(err));
+                                    await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 } else if (channel.permissionsLocked() === null) {
-                                    await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(err => errorLogs.send(err));
+                                    await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 }
                             }
                         }
                         muteMember();
-                    });
+                    }).catch(bot.errHandle);
                 } else if (muteRole) {
                     muteMember();
                 }
@@ -79,55 +79,55 @@ module.exports = {
                         if (arrMentionMembers.length != 0) {
                             for (const mbrMen of arrMentionMembers) {
                                 if (mbrMen.roles.cache.has(muteRole)) {
-                                    await mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(err => errorLogs.send(err));
+                                    await mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
                                     if (mbrMen.voice.channel != null) {
-                                        await mbrMen.voice.setMute(false).catch(err => errorLogs.send(err));
-                                        return await message.react('✅').catch(err => errorLogs.send(err));
+                                        await mbrMen.voice.setMute(false).catch(bot.errHandle);
+                                        return await message.react('✅').catch(bot.errHandle);
                                     } else if (mbrMen.voice.channel == null) {
-                                        return await message.react('✅').catch(err => errorLogs.send(err));
+                                        return await message.react('✅').catch(bot.errHandle);
                                     }
                                 } else if (!mbrMen.roles.cache.has(muteRole)) {
                                     if (mbrMen.roles.highest.position < botRole.position) {
                                         if (!muteTime) {
-                                            await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(err => errorLogs.send(err));
+                                            await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(bot.errHandle);
                                             if (mbrMen.voice.channel != null) {
-                                                await mbrMen.voice.setMute(true).catch(err => errorLogs.send(err));
-                                                return await message.react('✅').catch(err => errorLogs.send(err));
+                                                await mbrMen.voice.setMute(true).catch(bot.errHandle);
+                                                return await message.react('✅').catch(bot.errHandle);
                                             } else if (mbrMen.voice.channel == null) {
-                                                return await message.react('✅').catch(err => errorLogs.send(err));
+                                                return await message.react('✅').catch(bot.errHandle);
                                             }
                                         } else if (muteTime) {
-                                            await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(err => errorLogs.send(err));
-                                            await bot.db.query(`insert into serverMutes (userID, serverID, muteRoleID, timeUnmute) values (${mbrMen.id}, ${message.guild.id}, ${muteRole.id}, ${Date.now() + ms(muteTime)})`).then(() => {
+                                            await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(bot.errHandle);
+                                            await bot.db.query('insert into serverMutes (userID, serverID, muteRoleID, timeUnmute) values (?, ?, ?, ?)', [mbrMen.id, message.guild.id, muteRole.id, Date.now() + ms(muteTime)]).then(() => {
                                                 setTimeout(async() => {
-                                                    bot.db.query(`delete from serverMutes where userID = ${mbrMen.id} and serverID = ${mbrMen.guild.id} and muteRoleID = ${muteRole.id} and timeUnmute < ${Date.now()}`).catch(err => errorLogs.send(err));
+                                                    bot.db.query('delete from serverMutes where userID = ? and serverID = ? and muteRoleID = ? and timeUnmute < ?', [mbrMen.id, mbrMen.guild.id, muteRole.id, Date.now()]).catch(bot.errHandle);
                                                 }, ms(muteTime) + 3000);
-                                            }).catch(err => errorLogs.send(err));
+                                            }).catch(bot.errHandle);
                                             if (mbrMen.voice.channel != null) {
-                                                await mbrMen.voice.setMute(true).catch(err => errorLogs.send(err));
+                                                await mbrMen.voice.setMute(true).catch(bot.errHandle);
                                                 setTimeout(() => {
-                                                    mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(err => errorLogs.send(err));
-                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(err => errorLogs.send(err)); }
+                                                    mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
+                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); }
                                                 }, ms(muteTime)+3000);
-                                                return await message.react('✅').catch(err => errorLogs.send(err));
+                                                return await message.react('✅').catch(bot.errHandle);
                                             } else if (mbrMen.voice.channel == null) {
                                                 setTimeout(() => {
-                                                    mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(err => errorLogs.send(err));
-                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(err => errorLogs.send(err)); }
+                                                    mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
+                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); }
                                                 }, ms(muteTime) + 3000);
-                                                return await message.react('✅').catch(err => errorLogs.send(err));
+                                                return await message.react('✅').catch(bot.errHandle);
                                             }
                                         }
                                     } else if (mbrMen.roles.highest.position >= botRole.position) {
-                                        return message.channel.send('Can\'t mute they have higher role position than mine');
+                                        return message.channel.send('Can\'t mute they have higher role position than mine').catch(bot.errHandle);
                                     }
                                 }   
                             };
                         } else if (arrMentionMembers.length == 0) {
-                            return message.channel.send('You have not mentioned any member(s)');
+                            return message.channel.send('You have not mentioned any member(s)').catch(bot.errHandle);
                         }
                     } else if (!message.member.hasPermission('MANAGE_ROLES', { checkAdmin: true, checkOwner: true } )) {
-                        return message.react('🤔').catch(err => errorLogs.send(err));
+                        return message.react('🤔').catch(bot.errHandle);
                     }
                 };
             }
