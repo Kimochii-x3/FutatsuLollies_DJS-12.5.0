@@ -12,63 +12,28 @@ module.exports = async (bot, oldMember, newMember) => {
                     // console.log(log.changes[0]);
                     if (log.action === 'MEMBER_ROLE_UPDATE') {
                         if (log.executor) {
-                            if (log.changes[0].key === '$add') {
-                                const role = oldMember.guild.roles.cache.find(r => r.id === log.changes[0].new[0].id);
-                                const r$Add = new Discord.MessageEmbed()
-                                .setAuthor('Role added to member')
-                                .addField('**Executor:**', log.executor)
-                                .addField('**Target:**', log.target)
-                                .addField('**Role:**', role)
-                                // .setDescription(`Member: ${log.target}\nRole: ${role}`)
-                                .setColor('#14cdfc')
-                                .setTimestamp();
-                                return logCHNL.send(r$Add);
-                            } else if (log.changes[0].key === '$remove') {
-                                const role = oldMember.guild.roles.cache.find(r => r.id === log.changes[0].new[0].id);
-                                const r$Remove = new Discord.MessageEmbed()
-                                .setAuthor('Role removed from member')
-                                .addField('**Executor:**', log.executor)
-                                .addField('**Target:**', log.target)
-                                .addField('**Role:**', role)
-                                // .setDescription(`Member: ${log.target}\nRole: ${role}`)
-                                .setColor('#fc2b14')
-                                .setTimestamp();
-                                return logCHNL.send(r$Remove);
-                            }
-                        } else {
-                            if (log.changes[0].key === '$add') {
-                                const role = oldMember.guild.roles.cache.find(r => r.id === log.changes[0].new[0].id);
-                                const r$Add = new Discord.MessageEmbed()
-                                .setAuthor('Role added to member')
-                                .addField('**Executor:**', 'Executor not found')
-                                .addField('**Target:**', log.target)
-                                .addField('**Role:**', role)
-                                // .setDescription(`Member: ${log.target}\nRole: ${role}`)
-                                .setColor('#14cdfc')
-                                .setTimestamp();
-                                return logCHNL.send(r$Add);
-                            } else if (log.changes[0].key === '$remove') {
-                                const role = oldMember.guild.roles.cache.find(r => r.id === log.changes[0].new[0].id);
-                                const r$Remove = new Discord.MessageEmbed()
-                                .setAuthor('Role removed from member')
-                                .addField('**Executor:**', 'Executor not found')
-                                .addField('**Target:**', log.target)
-                                .addField('**Role:**', role)
-                                // .setDescription(`Member: ${log.target}\nRole: ${role}`)
-                                .setColor('#fc2b14')
-                                .setTimestamp();
-                                return logCHNL.send(r$Remove);
-                            }
+                            const role = oldMember.guild.roles.cache.find(r => r.id === log.changes[0].new[0].id);
+                            const change = log.changes[0].key === '$add' ? true : false;
+                            const r$Change = new Discord.MessageEmbed()
+                            .setAuthor(change ? 'Role added to member' : 'Role removed from member')
+                            .addField('**Executor:**', log.executor || 'Executor not found')
+                            .addField('**Target:**', log.target)
+                            .addField('**Role:**', role)
+                            // .setDescription(`Member: ${log.target}\nRole: ${role}`)
+                            .setColor(change ? '#14cdfc' : '#fc2b14')
+                            .setTimestamp();
+                            return logCHNL.send(r$Change).catch(bot.errHandle);
                         }
                     } else if (log.action === 'MEMBER_UPDATE') {
                         if (log.changes[0].key === 'nick') {
                             if (log.changes[0].old === undefined) {
+                            // const change = log.changes[0].old === undefined || log.changes[0].new !== undefined || log.changes[0].new === undefined - trying to figure this one out
                             const nick = new Discord.MessageEmbed()
-                                .setAuthor('Changed nickname')
+                                .setAuthor('Created nickname')
                                 .setDescription(`Member: ${oldMember.user}\nFrom: **${log.target.username}**\nTo: **${log.changes[0].new}**`)
                                 .setColor('GREY')
                                 .setTimestamp();
-                                return logCHNL.send(nick);
+                                return logCHNL.send(nick).catch(bot.errHandle);
                             } else if (log.changes[0].new !== undefined) {
                                 const nick = new Discord.MessageEmbed()
                                 .setAuthor('Changed nickname')
