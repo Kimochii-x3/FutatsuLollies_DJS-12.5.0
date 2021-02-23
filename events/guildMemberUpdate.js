@@ -26,15 +26,31 @@ module.exports = async (bot, oldMember, newMember) => {
                         }
                     } else if (log.action === 'MEMBER_UPDATE') {
                         if (log.changes[0].key === 'nick') {
-                            if (log.changes[0].old === undefined) {
-                            const changeDefine = log.changes[0].old === undefined ? 'Created nickname' : log.changes[0].new !== undefined ? 'Changed nickname' : log.changes[0].new === undefined ? 'Removed nickname' : 'none';
-                            const changeLog = log.changes[0].old === undefined ? `Member: ${oldMember.user}\nFrom: **${log.target.username}**\nTo: **${log.changes[0].new}**` : log.changes[0].new !== undefined ? `Member: ${oldMember.user}\nFrom: **${log.changes[0].old}**\nTo: **${log.changes[0].new}**` : log.changes[0].new === undefined ? `Member: ${oldMember.user}\nFrom: **${log.changes[0].old}**\nTo: **${log.target.username}**`: 'none';
-                            const nick = new Discord.MessageEmbed()
+                            let changeDefine;
+                            let changeLog;
+                            if (!log.changes[0].old) {
+                                changeDefine = 'Created nickname';
+                                changeLog = `Member: ${oldMember.user}\nFrom: **${log.target.username}**\nTo: **${log.changes[0].new}**`;
+                                return embed(changeDefine, changeLog);
+                            } else if (log.changes[0].new) {
+                                changeDefine = 'Changed nickname';
+                                changeLog = `Member: ${oldMember.user}\nFrom: **${log.changes[0].old}**\nTo: **${log.changes[0].new}**`;
+                                return embed(changeDefine, changeLog);
+                            } else if (!log.changes[0].new) {
+                                changeDefine = 'Removed nickname';
+                                changeLog = `Member: ${oldMember.user}\nFrom: **${log.changes[0].old}**\nTo: **${log.target.username}**`;
+                                return embed(changeDefine, changeLog);
+                            } else {
+                                changeDefine, changeLog = 'none';
+                                return embed(changeDefine, changeLog);
+                            }
+                            function embed(changeDefine, changeLog) {
+                                const nick = new Discord.MessageEmbed()
                                 .setAuthor(changeDefine)
                                 .setDescription(changeLog)
                                 .setColor('GREY')
                                 .setTimestamp();
-                                return logCHNL.send(nick).catch(bot.errHandle);
+                                return logCHNL.send(nick).catch(bot.errHandle); 
                             }
                         } else if (log.changes[0].key === 'mute') {
                             return;

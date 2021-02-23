@@ -12,7 +12,7 @@ module.exports = {
         const botPerms = message.guild.me.hasPermission(['SEND_MESSAGES, MANAGE_ROLES, EMBED_LINKS, ADD_REACTIONS'], { checkAdmin: true, checkOwner: false });
         if (!botPerms) {
             return message.channel.send('I do not have one or more of these permissions: `Send Messages; Manage Roles; Embed Links; Add Reactions;` to my role `FutatsuLollies`').catch(bot.errHandle);
-        } else if (botPerms) {
+        } else {
             // after finding that placeholder role exists it has some definitions before carrying on with code, sets up preview embedded message too, then it has basic checks to see if hexCode would be someone mentioned and all that, most of the code after this is just copy paste
             function colorChanger() {
                 const hexCode = args[0];
@@ -28,7 +28,7 @@ module.exports = {
                             return message.channel.send('No role found').catch(bot.errHandle);
                         } else if (!hexCode.startsWith('#')) {
                             return message.channel.send('Incorrect hexcode, example: `prefix`.color #ff00ff').catch(bot.errHandle);
-                        } else if (hexCode.startsWith('#')) {
+                        } else if (hexCode.startsWith('#')) { // possibly pointless else-if?
                             await placeholder.setColor(hexCode).then(async placeholderRole => {
                                 const filter = (reaction, user) => ['✅', '❌'].includes(reaction.emoji.name) && user.id === message.author.id;
                                 message.channel.send(rolePreview).then(async botMsg => {
@@ -62,7 +62,7 @@ module.exports = {
                                 }).catch(bot.errHandle);
                             }).catch(bot.errHandle);
                         }
-                    } else if (roleColor) {
+                    } else {
                         if (!hexCode) {
                             return message.channel.send(`Your role hex code is: ${roleColor.hexColor}`).catch(bot.errHandle);
                         } else if (hexCode === 'remove') {
@@ -70,7 +70,7 @@ module.exports = {
                             return message.channel.send(`${roleColor} was deleted`).catch(bot.errHandle);
                         } else if (!hexCode.startsWith('#')) {
                             return message.channel.send('Incorrect hexcode, example: `prefix`.color #ff00ff').catch(bot.errHandle);
-                        } else if (hexCode.startsWith('#')) {
+                        } else if (hexCode.startsWith('#')) { // possibly pointless else-if?
                             placeholder.setColor(hexCode).then( async placeholderRole => {
                                 const filter = (reaction, user) => ['✅', '❌'].includes(reaction.emoji.name) && user.id === message.author.id;
                                 message.channel.send(rolePreview).then(async botMsg => {
@@ -103,8 +103,8 @@ module.exports = {
                             }).catch(bot.errHandle);
                         }
                     }
-                } else if (idOthers) {
-                    if (hexCode === `<@!${idOthers.id}`) {
+                } else {
+                    if (hexCode === `<@!${idOthers.id}`) { // this could definitely be different lmao like just hexCode === idOthers :omegalul:
                         const roleColorOthers = message.guild.roles.cache.find(role => role.name === `USER-${idOthers.id}`);
                         if (!roleColorOthers) {
                             return message.channel.send(`No user role found, however the highest role's hexcode is: ${idOthers.displayHexColor}`).catch(bot.errHandle);

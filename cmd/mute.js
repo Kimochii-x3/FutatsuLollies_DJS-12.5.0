@@ -43,7 +43,7 @@ module.exports = {
         if (!option[1]) {
             if (!botPerms) {
                 return message.channel.send('I don\'t have either one or all of:\n`Manage Channels; Add Reactions; Mute Members; Manage Roles; Send Messages; Embed Links;`').catch(bot.errHandle);
-            } else if (botPerms) {
+            } else {
                 const rows = await bot.db.query('select * from serverInfo where serverID = ?', [message.guild.id]).catch(bot.errHandle);
                 const muteRole = message.guild.roles.cache.find(role => role.id === rows[0].muteRoleID);
                 const botRole = message.guild.roles.cache.find(role => role.name === 'FutatsuLollies');
@@ -58,72 +58,72 @@ module.exports = {
                             } else if (channel.type === 'text') {
                                 if (!channel.permissionsLocked()) {
                                     await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
-                                } else if (channel.permissionsLocked() === null) {
+                                } else if (channel.permissionsLocked() === null) { // Tim this might be the same as line 59
                                     await channel.updateOverwrite(role, { SEND_MESSAGES: false, ADD_REACTIONS: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 }
                             } if (channel.type === 'voice') {
                                 if (!channel.permissionsLocked()) {
                                     await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
-                                } else if (channel.permissionsLocked() === null) {
+                                } else if (channel.permissionsLocked() === null) { // Tim this might be same as line 65
                                     await channel.updateOverwrite(role, { SPEAK: false }, 'Updating the perms for the mute role' ).catch(bot.errHandle);
                                 }
                             }
                         }
                         muteMember();
                     }).catch(bot.errHandle);
-                } else if (muteRole) {
-                    muteMember();
+                } else {
+                    return muteMember();
                 }
                 async function muteMember() {
                     if (message.member.hasPermission('MANAGE_ROLES', { checkAdmin: true, checkOwner: true } )) {
-                        if (arrMentionMembers.length != 0) {
+                        if (arrMentionMembers.length !== 0) {
                             for (const mbrMen of arrMentionMembers) {
                                 if (mbrMen.roles.cache.has(muteRole)) {
                                     await mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
-                                    if (mbrMen.voice.channel != null) {
+                                    if (mbrMen.voice.channel !== null) {
                                         await mbrMen.voice.setMute(false).catch(bot.errHandle);
                                         return await message.react('✅').catch(bot.errHandle);
-                                    } else if (mbrMen.voice.channel == null) {
+                                    } else {
                                         return await message.react('✅').catch(bot.errHandle);
                                     }
-                                } else if (!mbrMen.roles.cache.has(muteRole)) {
+                                } else {
                                     if (mbrMen.roles.highest.position < botRole.position) {
                                         if (!muteTime) {
                                             await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(bot.errHandle);
-                                            if (mbrMen.voice.channel != null) {
+                                            if (mbrMen.voice.channel !== null) {
                                                 await mbrMen.voice.setMute(true).catch(bot.errHandle);
                                                 return await message.react('✅').catch(bot.errHandle);
-                                            } else if (mbrMen.voice.channel == null) {
+                                            } else {
                                                 return await message.react('✅').catch(bot.errHandle);
                                             }
-                                        } else if (muteTime) {
+                                        } else {
                                             await mbrMen.roles.add(muteRole, 'Muting from voice and/or text').catch(bot.errHandle);
                                             await bot.db.query('insert into serverMutes (userID, serverID, muteRoleID, timeUnmute) values (?, ?, ?, ?)', [mbrMen.id, message.guild.id, muteRole.id, Date.now() + ms(muteTime)]).then(() => {
                                                 setTimeout(async() => {
                                                     bot.db.query('delete from serverMutes where userID = ? and serverID = ? and muteRoleID = ? and timeUnmute < ?', [mbrMen.id, mbrMen.guild.id, muteRole.id, Date.now()]).catch(bot.errHandle);
                                                 }, ms(muteTime) + 3000);
                                             }).catch(bot.errHandle);
-                                            if (mbrMen.voice.channel != null) {
+                                            if (mbrMen.voice.channel !== null) {
                                                 await mbrMen.voice.setMute(true).catch(bot.errHandle);
                                                 setTimeout(() => {
                                                     mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
-                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); }
+                                                    if (mbrMen.voice.channel !== null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); } // return in IF might be pointless?
                                                 }, ms(muteTime)+3000);
-                                                return await message.react('✅').catch(bot.errHandle);
-                                            } else if (mbrMen.voice.channel == null) {
+                                                return await message.react('✅').catch(bot.errHandle); // await might be pointless?
+                                            } else {
                                                 setTimeout(() => {
                                                     mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
-                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); }
+                                                    if (mbrMen.voice.channel != null) { return mbrMen.voice.setMute(false).catch(bot.errHandle); } // return in IF might be pointless?
                                                 }, ms(muteTime) + 3000);
-                                                return await message.react('✅').catch(bot.errHandle);
+                                                return await message.react('✅').catch(bot.errHandle); // await might be pointless?
                                             }
                                         }
                                     } else if (mbrMen.roles.highest.position >= botRole.position) {
-                                        return message.channel.send('Can\'t mute they have higher role position than mine').catch(bot.errHandle);
+                                        return message.channel.send(`Can't mute \`${mbrMen}\` they have higher role position than mine`).catch(bot.errHandle);
                                     }
                                 }   
                             };
-                        } else if (arrMentionMembers.length == 0) {
+                        } else {
                             return message.channel.send('You have not mentioned any member(s)').catch(bot.errHandle);
                         }
                     } else if (!message.member.hasPermission('MANAGE_ROLES', { checkAdmin: true, checkOwner: true } )) {
