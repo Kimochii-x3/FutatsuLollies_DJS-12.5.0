@@ -1,6 +1,5 @@
 const Discord = require('discord.js');
 const ms = require('ms');
-const mute = require('../Archive update from/cmd/mute');
 // mute command, lotsa code stuff, sorting permissions for channels, saving mute role to database and uhh idk what else more info in later on commenting
 
 // 1st - bot check self perm
@@ -25,22 +24,25 @@ module.exports = {
     args: true,
     async execute (bot, message, args, option, commands, prefix) {
         const botPerms = message.guild.me.hasPermission(['MANAGE_CHANNELS', 'ADD_REACTIONS', 'MUTE_MEMBERS', 'MANAGE_ROLES', 'SEND_MESSAGES', 'EMBED_LINKS'], { checkAdmin: true, checkOwner: false });
-        if (option[1] && option[1].trim() === 'set') {
-            const foundMuterole = message.mentions.roles.first() || message.guild.roles.cache.get(option[0]);
-            if (foundMuterole) {
-                await bot.db.query('update serverInfo set muteRoleID = ? where serverID = ?', [foundMuterole.id, message.guild.id]).catch(bot.errHandle);
-                return message.channel.send(`Successfully changed the mute role's ID to ${foundMuterole} in the database`).catch(bot.errHandle);
-                // let checkedChannelsEmbed = new Discord.MessageEmbed()
-                // .setAuthor(`Checking all ${message.guild.channels.cache.size} channels for permissions`)
-                // get array of channels, chunk it down, limit chunks to 10, output chunks to fields for discord embed, not necessary to do it now, can be for future update, after that is done
-                // let it work on permissions for muterole, till then ppl do the perms themselves.
-            } else if (!foundMuterole) {
-                return message.channel.send('No role mentioned or no role id provided').catch(bot.errHandle);
+        // console.log(option[0]);
+        // console.log(option[1]);
+        if (option[1]) {
+            if (option[0] && option[1].trim() === 'set') {
+                const foundMuterole = message.mentions.roles.first() || message.guild.roles.cache.get(option[0]);
+                if (foundMuterole) {
+                    await bot.db.query('update serverInfo set muteRoleID = ? where serverID = ?', [foundMuterole.id, message.guild.id]).catch(bot.errHandle);
+                    return message.channel.send(`Successfully changed the mute role's ID to ${foundMuterole} in the database`).catch(bot.errHandle);
+                    // let checkedChannelsEmbed = new Discord.MessageEmbed()
+                    // .setAuthor(`Checking all ${message.guild.channels.cache.size} channels for permissions`)
+                    // get array of channels, chunk it down, limit chunks to 10, output chunks to fields for discord embed, not necessary to do it now, can be for future update, after that is done
+                    // let it work on permissions for muterole, till then ppl do the perms themselves.
+                } else if (!foundMuterole) {
+                    return message.channel.send('No role mentioned or no role id provided').catch(bot.errHandle);
+                }
+            } else {
+                return message.channel.send('You didn\'t use `-set` option to set the mute role').catch(bot.errHandle);
             }
-        } else {
-            return message.channel.send('You didn\'t use `-set` option to set the mute role').catch(bot.errHandle);
-        }
-        if (!option[1]) {
+        } else if (!option[1]) {
             if (!botPerms) {
                 return message.channel.send('I don\'t have either one or all of:\n`Manage Channels; Add Reactions; Mute Members; Manage Roles; Send Messages; Embed Links;`').catch(bot.errHandle);
             } else {
@@ -77,7 +79,8 @@ module.exports = {
                 async function muteMember() {
                     if (message.member.hasPermission('MANAGE_ROLES', { checkAdmin: true, checkOwner: true } )) {
                         if (arrMentionMembers.length !== 0) {
-                            for (const mbrMen of arrMentionMembers) {
+                            arrMentionMembers.each(async mbrMen => {
+                                // console.log(mbrMen.roles);
                                 if (mbrMen.roles.cache.has(muteRole)) {
                                     await mbrMen.roles.remove(muteRole, 'Unmuting from voice and/or text').catch(bot.errHandle);
                                     if (mbrMen.voice.channel !== null) {
@@ -118,11 +121,12 @@ module.exports = {
                                                 return await message.react('✅').catch(bot.errHandle); // await might be pointless?
                                             }
                                         }
-                                    } else if (mbrMen.roles.highest.position >= botRole.position) {
+                                    } else if (mbrMen.roles.highest.position > botRole.position) {
                                         return message.channel.send(`Can't mute \`${mbrMen}\` they have higher role position than mine`).catch(bot.errHandle);
                                     }
                                 }   
-                            };
+                            });
+                            // for (const mbrMen of arrMentionMembers) { };
                         } else {
                             return message.channel.send('You have not mentioned any member(s)').catch(bot.errHandle);
                         }
